@@ -1,8 +1,6 @@
 # Tic Tac Toe AI
 
-# import numpy as np
-
-# theBoard = [' '] * 9 
+theBoard = [' '] * 9 
 
 def printBoard(board):
     print(board[0] + ' | ' + board[1] + ' | ' + board[2])
@@ -11,64 +9,64 @@ def printBoard(board):
     print('--+--+--')
     print(board[6] + ' | ' + board[7] + ' | ' + board[8])
 
-def checkWin(board):
-    return (board[0] == board[1] == board[2] != 0 or
-        board[3] == board[4] == board[5] != 0 or
-        board[6] == board[7] == board[8] != 0 or
-        board[0] == board[4] == board[8] != 0 or
-        board[2] == board[4] == board[6] != 0 or
-        board[0] == board[3] == board[6] != 0 or
-        board[1] == board[4] == board[7] != 0 or
-        board[2] == board[5] == board[8] != 0)
+def isWinner(board):
+    return (board[0] == board[1] == board[2] != ' ' or
+        board[3] == board[4] == board[5] != ' ' or
+        board[6] == board[7] == board[8] != ' ' or
+        board[0] == board[4] == board[8] != ' ' or
+        board[2] == board[4] == board[6] != ' ' or
+        board[0] == board[3] == board[6] != ' ' or
+        board[1] == board[4] == board[7] != ' ' or
+        board[2] == board[5] == board[8] != ' ')
 
-def scottAI(board):
-    
-    # Convert open spaces to 0, my spaces to 1, and opp. spaces to -1
-    #for i in range(9):
-    #    if board[i] == ' ':
-    #        board[i] = 0
-    #    else:
-    #        if board[i] == turn:
-    #            board[i] = 1
-    #        else:
-    #            board[i] = -1
+def opp(player):
+    if player == 'X':
+        return 'O'
+    else:
+        return 'X'
 
-    # Choose move with highest minimax score
-    scores = [8]*9
+def scottAI(board, player):
+
+    bestMove = -1
+    bestScore = -2
 
     for i in range(9):
-        if board[i] == 0:
-            board[i] = 1
-            scores[i] = -minimax([-j for j in board])
-            board[i] = 0
-        else:
-            scores[i] = 900
-        print(board)
-    return scores
+        if board[i] == ' ':
+            dummyBoard = board[:]
+            dummyBoard[i] = player
+            if isWinner(dummyBoard):
+                bestMove = i
+                bestScore = 1
+            else:
+                if -minimax(dummyBoard, opp(player)) > bestScore:
+                    bestMove = i
+                    bestScore = -minimax(dummyBoard, opp(player))
 
-    
+    return bestMove
 
-def minimax(board): # Given a board, returns a score for the player based on how good it is
+def minimax(board, player): # Given a board, returns 1, -1, or 0
 
-    # First, see if any moves will result in a win for the player. If so, return score of 1
-    for i in range(9):
-        if board[i] == 0:
-            board[i] = 1
-            if checkWin(board) == True:
-                return 1
+    # Check if board is full; if so, return 0
+    if len([i for i in board if i==' '])==0:
+        return 0
     
-    # Next, find the minimax score for each move
-    
-    score = -2
+    bestScore = -2
 
     for i in range(9):
-        if board[i] == 0:
-            board[i] = 1
-            if -minimax([-j for j in board]) > score:
-                score = -minimax([-j for j in board])
-            board[i] = 0
+        if board[i] == ' ':
+            dummyBoard = board[:]
+            dummyBoard[i] = player
 
-    return score
+            # First, check if any moves will result in a win for the player; if so, return score of 1
+            if isWinner(dummyBoard) == True:
+                bestScore = 1
+            
+            # Otherwise, find the minimax score of opponent
+            else:
+                if -minimax(dummyBoard, opp(player)) > bestScore:
+                    bestScore = -minimax(dummyBoard, opp(player))
+    
+    return bestScore
 
 def game():
 
@@ -85,21 +83,21 @@ def game():
             print("It's your turn, " + turn + ". Move to which place?")
             move = int(input())
         else:
-            move = scottAI(turn,theBoard)
+            move = scottAI(theBoard, turn)
     
         # Add move to board, check for invalid move
         if theBoard[move] == ' ':
             theBoard[move] = turn
             count += 1
         else:
-            print("Invalid move was played. Game over!")
-            break
+            print("Invalid move was played. Try again!")
+            continue
         
         # Check for win
         if count >= 5:
-            if checkWin(theBoard) == True:
+            if isWinner(theBoard):
                 printBoard(theBoard)
-                print("Game over. " & turn & " has won.")
+                print("Game over. " + turn + " has won.")
                 break
 
         # Check for tie
@@ -108,12 +106,7 @@ def game():
             print("Game over. It's a tie.")
             break
 
-        if turn =='X':
-            turn = 'O'
-        else:
-            turn = 'X'        
+        turn = opp(turn)       
 
 if __name__ == "__main__":
-#    game()
-    testBoard = [-1,0,-1,1,1,0,-1,-1,0]
-    print(scottAI(testBoard[:]))
+    game()
